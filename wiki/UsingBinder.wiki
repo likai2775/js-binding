@@ -1,0 +1,71 @@
+#summary Using Binder
+
+= Introduction =
+
+This is a short tutorial on how to use the Binder class.
+
+= Creating a Binder =
+
+To create a new Binder and tie it to a new or existing object, use the function *Binder.bindTo()*.  For this and the remaining examples, let's build up a new object from scratch.
+
+{{{
+var myObject = {};
+var binder = Binder.bindTo( myObject );
+}}}
+
+= Setting properties =
+
+You may set any property in the object graph via the *set()* method.  The notation is a simple dotted-path notation, similar to many web frameworks.  It also matches the same path that you would use if accessing the property directly in javascript.  The difference, and the value that Binder adds, is that it will transparently create all the objects necessary to reach that path if they don't already exist.  Continuing from the previous example, where we've created a binder for an empty object, let's set some properties:
+
+{{{
+binder.set( "username", "jdoe" );
+binder.set( "email", "foo@bar.com" );
+binder.set( "address.street", "123 Market St" );
+binder.set( "address.city", "San Francisco" );
+binder.set( "address.state", "California" );
+binder.set( "phone[0].type", "home" );
+binder.set( "phone[0].number", "555-1212" );
+binder.set( "phone[1].type="mobile" );
+binder.set( "phone[1].number = "555-7878" );
+
+var result = binder.target;
+}}}
+
+Our resulting object would then look like:
+{{{
+{ 
+  username: "jdoe",
+  email: "foo@bar.com",
+  address: {
+    street: "123 Market St",
+    city: "San Francisco", 
+    state: "California"
+  },
+  phone: [
+    { type: "home", number: "555-1212" },
+    { type: "mobile", number: "555-7878" }
+  ]
+}
+}}}
+
+
+= Getting properties =
+
+You may also read property values using the same notation using the *get()* method.  Attempts to access invalid paths will not modify the bound object and will simply return *undefined*.
+
+= Why use this? =
+
+While setting and getting properties by themselves isn't too useful, it can be used as the foundation of a simple, declarative form binding mechanism.  Consider:
+
+{{{
+<form>
+  <input type="text" name="username"/>
+  <input type="text" name="email"/>
+  <input type="text" name="address.street"/>
+  <input type="text" name="address.city"/>
+  <input type="text" name="address.state"/>
+  ...
+</form>
+}}}
+
+It's very easy to write a method to go through the form elements on the page then set and get properties based on the property path tied to the input.  For AJAX driven apps that send objects to and from the server using JSON or technologies like DWR, this can be very useful.  In fact, both DWR and Dojo already have similar mechanisms.  This simply looks to improve upon those ideas.
