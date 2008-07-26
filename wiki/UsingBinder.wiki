@@ -25,8 +25,8 @@ binder.set( "address.city", "San Francisco" );
 binder.set( "address.state", "California" );
 binder.set( "phone[0].type", "home" );
 binder.set( "phone[0].number", "555-1212" );
-binder.set( "phone[1].type="mobile" );
-binder.set( "phone[1].number = "555-7878" );
+binder.set( "phone[1].type", "mobile" );
+binder.set( "phone[1].number", "555-7878" );
 
 var result = binder.target;
 }}}
