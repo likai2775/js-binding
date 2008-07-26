@@ -21,10 +21,14 @@ var Binder = function() {
 	var current = path.shift();
     if( current.indexOf( "[" ) >= 0 ) {
       var match = current.match( ARRAY_MATCH );
-      var index = Number(match[2]);
       current = match[1];
       target[current] = target[current] || [];
-      target[current][index] = _setProperty( target[current][index] || {}, path, value )
+      if( match[2] ) {
+        var index = Number(match[2]);
+        target[current][index] = _setProperty( target[current][index] || {}, path, value )	
+      } else {
+        target[current].push( _setProperty( {}, path, value ))	    
+      }
       return target;
     } else {
       target[current] = _setProperty( target[current] || {}, path, value );
@@ -38,14 +42,42 @@ var Binder = function() {
     var current = path.shift();
     if( current.indexOf( "[" ) >= 0 ) {
       var match = current.match( ARRAY_MATCH );
-      var index = Number(match[2]);
       current = match[1];
-      return _getProperty( target[current][index], path )
+      if( match[2] ) {
+        var index = Number(match[2]);
+        return _getProperty( target[current][index], path )	 
+      } else {
+	    return target[current];
+      }
     } else {
       return _getProperty( target[current], path );
     }
   };
-
+  var _enumerate = function( collection, target, path ) {
+    if( target instanceof Array ) {
+	  for( var i = 0; i < target.length; i++ ) {
+	    _enumerate( collection, target[i], path + "["+i+"]" );	
+      }
+    } else if( typeof(target) == "string" || typeof(target) == "number" || typeof(target) == "date"  || typeof(target) == "boolean" ) {
+	  collection.push( path );
+    } else {
+	  for( property in target ) {
+		if( typeof( property ) != "function" ) {
+		    _enumerate( collection, target[property], path == "" ? property : path + "." + property );				
+		}
+      }	
+    }
+  };
+  var _isSelected = function( value, options ) {
+    if( options instanceof Array ) {
+	  for( var i = 0; i < options.length; ++i ) {
+	    if( value == options[i] ) return true;	 
+	  }
+    } else {
+	  return value == options;
+    }
+    return false;
+  }
   return {
 	bindTo: function( obj ) {
       return {
@@ -57,8 +89,54 @@ var Binder = function() {
 	      get: function(  property ) {
 	        var path = property.split( "." );	     
 	        return _getProperty( this.target || {}, path );	
-	      }
+	      },
+          properties: function() {
+             var props = [];
+             _enumerate( props, this.target, "" );
+             return props;
+          }
 	   };		
-	}	
+	},
+	serializeForm: function( form, obj ) {
+      var binder = this.bindTo( obj );
+      for( var i = 0; i < form.elements.length; i++) {
+        var element = form.elements[i];
+        var value = undefined
+        if( element.type == "radio" || element.type == "checkbox" )  {
+          if( element.checked ) {
+            value = element.value;	
+          }
+        } else if ( element.type == "select-one" || element.type == "select-multiple" ) {
+          for( var j = 0; j < element.options.length; j++ ) {
+            if( element.options[j].selected ) {
+              binder.set( element.name, element.options[j].value );
+            }  
+          }
+        } else {
+	      value = element.value;
+      	}
+        if( value ) {
+          binder.set( element.name, value );	
+        }
+      }
+      return binder.target;
+	},
+	deserializeForm: function( form, obj ) {
+      var binder = this.bindTo( obj );
+      for( var i = 0; i < form.elements.length; i++) {
+        var element = form.elements[i];
+        var value = binder.get( element.name );
+        if( element.type == "radio" || element.type == "checkbox" )  {
+          element.checked = _isSelected( element.value, value );
+        } else if ( element.type == "select-one" || element.type == "select-multiple" ) {
+          for( var j = 0; j < element.options.length; j++ ) {
+	        element.options[j].selected = _isSelected( element.options[j].value, value );
+          }
+        } else {
+	      element.value = value;
+      	}
+      }
+      return binder.target;
+	}
   };
 }();
