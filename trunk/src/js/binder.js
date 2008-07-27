@@ -133,7 +133,7 @@ var Binder = function() {
 	        element.options[j].selected = _isSelected( element.options[j].value, value );
           }
         } else {
-	      element.value = value;
+	      element.value = value ? value : "";
       	}
       }
       return binder.target;
