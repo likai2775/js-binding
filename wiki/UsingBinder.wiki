@@ -53,7 +53,23 @@ Our resulting object would then look like:
 
 You may also read property values using the same notation using the *get()* method.  Attempts to access invalid paths will not modify the bound object and will simply return *undefined*.
 
-= Why use this? =
+= Addtional notes on Arrays=
+In addition to accessing individual array elements, it is also possible to access the array itself by omitting the index.  This provides a little more flexibility. particularly in form binding where we the array size is variable depending on the items selected.  For example:
+
+{{{
+binder.set( "options[]", "option1" );
+binder.set( "options[]", "option2" );
+}}}
+will produce:
+{{{
+{
+  options: [ "option1", "option2" ] 
+}
+}}}
+
+Retrieving the attribute using the same notation returns the array itself.
+
+= Binding to Forms=
 
 While setting and getting properties by themselves isn't too useful, it can be used as the foundation of a simple, declarative form binding mechanism.  Consider:
 
@@ -68,4 +84,35 @@ While setting and getting properties by themselves isn't too useful, it can be u
 </form>
 }}}
 
-It's very easy to write a method to go through the form elements on the page then set and get properties based on the property path tied to the input.  For AJAX driven apps that send objects to and from the server using JSON or technologies like DWR, this can be very useful.  In fact, both DWR and Dojo already have similar mechanisms.  This simply looks to improve upon those ideas.
+If your form is AJAX based and leverages JSON or DWR, binder makes it trivial to convert this form to the corresponding object graph:
+
+{{{
+{
+  username: "...",
+  email: "...",
+  address: {
+    street: "...",
+    city: "...",
+    state: "..."
+  }
+}
+}}}
+
+To fill in a form based on object properties, use the *Binder.deserializeForm()* method.  Example:
+
+{{{
+  var myObj = {...};
+  var myForm = ...;
+  Binder.deserializeForm( myForm, myObj );
+}}}
+
+Likewise, to convert the form input back into the object representation, use *Binder.serializeForm()*.  Example:
+
+{{{
+  var myForm = ...;
+  var myObj = Binder.serializeForm( myForm );
+}}}
+
+A simple demo of this can be found in SVN as demo/formdemo.html.
+
+At the moment there is no type hinting or conversion available, though this is likely to be added in the near future.
