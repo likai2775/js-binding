@@ -127,11 +127,25 @@ Binder.FormBinder = function() {
   var _format = function( path, value, element ) {
     var type = _getType( element );
     var handler = this.typeHandlers[type];
+    if( value instanceof Array && handler ) {
+	  var nv = [];
+	  for( var i = 0; i < value.length; i++ ) {
+	    nv[i] = handler.format( value[i] );	
+	  }
+	  return nv;
+    }
     return handler ? handler.format( value ) : value;	
   };
   var _parse = function( path, value, element ) {
     var type = _getType( element );
     var handler = this.typeHandlers[type];
+    if( value instanceof Array && handler ) {
+	  var nv = [];
+	  for( var i = 0; i < value.length; i++ ) {
+	    nv[i] = handler.parse( value[i] );	
+	  }
+	  return nv;
+    }
     return handler ? handler.parse( value ) : value;	
   };
   return {
@@ -174,6 +188,7 @@ Binder.FormBinder = function() {
 	      for( var i = 0; i < form.elements.length; i++) {
 	        var element = form.elements[i];
 	        var value = accessor.get( element.name );
+            value = _format.apply( self, [ element.name, value, element ] );
 	        if( element.type == "radio" || element.type == "checkbox" )  {
 	          element.checked = _isSelected( element.value, value );
 	        } else if ( element.type == "select-one" || element.type == "select-multiple" ) {
@@ -181,7 +196,6 @@ Binder.FormBinder = function() {
 		        element.options[j].selected = _isSelected( element.options[j].value, value );
 	          }
 	        } else {
-		      value = _format.apply( self, [ element.name, value, element ] );
 		      element.value = value || "";
 	      	}
 	      }
