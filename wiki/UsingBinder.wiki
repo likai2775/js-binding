@@ -6,7 +6,7 @@ This is a short tutorial on how to use the various classes.
 
 = Creating a Property Accessor =
 
-To create a new PropertyAccessor and tie it to a new or existing object, use the function *Binder.PropertyAccessor.bindTo()*.  For this and the remaining examples, let's build up a new object from scratch.
+To create a new !PropertyAccessor and tie it to a new or existing object, use the function *Binder.!PropertyAccessor.bindTo()*.  For this and the remaining examples, let's build up a new object from scratch.
 
 {{{
 var myObject = {};
@@ -15,7 +15,7 @@ var accessor = Binder.PropertyAccessor.bindTo( myObject );
 
 = Setting properties =
 
-You may set any property in the object graph via the *set()* method.  The notation is a simple dotted-path notation, similar to many web frameworks.  It also matches the same path that you would use if accessing the property directly in javascript.  The difference, and the value that PropertyAccessor adds, is that it will transparently create all the objects necessary to reach that path if they don't already exist.  Continuing from the previous example, where we've created an accessor for an empty object, let's set some properties:
+You may set any property in the object graph via the *set()* method.  The notation is a simple dotted-path notation, similar to many web frameworks.  It also matches the same path that you would use if accessing the property directly in javascript.  The difference, and the value that !PropertyAccessor adds, is that it will transparently create all the objects necessary to reach that path if they don't already exist.  Continuing from the previous example, where we've created an accessor for an empty object, let's set some properties:
 
 {{{
 accessor.set( "username", "jdoe" );
@@ -98,7 +98,7 @@ If your form is AJAX based and leverages JSON or DWR, binder makes it trivial to
 }
 }}}
 
-To create a form binder, use *Binder.FormBinder.bind()*.  This creates an instance tied to the specified form and provides two methods, *serialize()* and *deserialize()*.  For example, to fill in a form from a javascript object, use the code:
+To create a form binder, use *Binder.!FormBinder.bind()*.  This creates an instance tied to the specified form and provides two methods, *serialize()* and *deserialize()*.  For example, to fill in a form from a javascript object, use the code:
 
 {{{
   var myObject = ...;
@@ -113,6 +113,7 @@ Likewise, to convert the form input back into the object representation:
   myObject = binder.serialize();
 }}}
 
+If you need to merge the form values into an existing object, you may pass it as a parameter in *serialize()*.  Only the fields that are mapped to form elements will be modified as a result.
 
 = Type Conversion =
 
@@ -124,7 +125,7 @@ By default, form fields are serialized as strings.  The form binder supports typ
 
 = Custom Type Handlers =
 
-For custom types, you can specify additional handlers in the call to *Binder.FormBinder.bind()*.  The optional 2nd parameter is a hash of type names to converters, where each converter is an object with two methods, *parse()* and *format*.  
+For custom types, you can specify additional handlers in the call to *Binder.!FormBinder.bind()*.  The optional 2nd parameter is a hash of type names to converters, where each converter is an object with two methods, *parse()* and *format*.  
 
 {{{
   var binder = Binder.FormBinder.bind( myForm, {
