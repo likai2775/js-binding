@@ -2,33 +2,33 @@
 
 = Introduction =
 
-This is a short tutorial on how to use the Binder class.
+This is a short tutorial on how to use the various classes.
 
-= Creating a Binder =
+= Creating a Property Accessor =
 
-To create a new Binder and tie it to a new or existing object, use the function *Binder.bindTo()*.  For this and the remaining examples, let's build up a new object from scratch.
+To create a new PropertyAccessor and tie it to a new or existing object, use the function *Binder.PropertyAccessor.bindTo()*.  For this and the remaining examples, let's build up a new object from scratch.
 
 {{{
 var myObject = {};
-var binder = Binder.bindTo( myObject );
+var accessor = Binder.PropertyAccessor.bindTo( myObject );
 }}}
 
 = Setting properties =
 
-You may set any property in the object graph via the *set()* method.  The notation is a simple dotted-path notation, similar to many web frameworks.  It also matches the same path that you would use if accessing the property directly in javascript.  The difference, and the value that Binder adds, is that it will transparently create all the objects necessary to reach that path if they don't already exist.  Continuing from the previous example, where we've created a binder for an empty object, let's set some properties:
+You may set any property in the object graph via the *set()* method.  The notation is a simple dotted-path notation, similar to many web frameworks.  It also matches the same path that you would use if accessing the property directly in javascript.  The difference, and the value that PropertyAccessor adds, is that it will transparently create all the objects necessary to reach that path if they don't already exist.  Continuing from the previous example, where we've created an accessor for an empty object, let's set some properties:
 
 {{{
-binder.set( "username", "jdoe" );
-binder.set( "email", "foo@bar.com" );
-binder.set( "address.street", "123 Market St" );
-binder.set( "address.city", "San Francisco" );
-binder.set( "address.state", "California" );
-binder.set( "phone[0].type", "home" );
-binder.set( "phone[0].number", "555-1212" );
-binder.set( "phone[1].type", "mobile" );
-binder.set( "phone[1].number", "555-7878" );
+accessor.set( "username", "jdoe" );
+accessor.set( "email", "foo@bar.com" );
+accessor.set( "address.street", "123 Market St" );
+accessor.set( "address.city", "San Francisco" );
+accessor.set( "address.state", "California" );
+accessor.set( "phone[0].type", "home" );
+accessor.set( "phone[0].number", "555-1212" );
+accessor.set( "phone[1].type", "mobile" );
+accessor.set( "phone[1].number", "555-7878" );
 
-var result = binder.target;
+var result = accessor.target;
 }}}
 
 Our resulting object would then look like:
@@ -57,8 +57,8 @@ You may also read property values using the same notation using the *get()* meth
 In addition to accessing individual array elements, it is also possible to access the array itself by omitting the index.  This provides a little more flexibility. particularly in form binding where we the array size is variable depending on the items selected.  For example:
 
 {{{
-binder.set( "options[]", "option1" );
-binder.set( "options[]", "option2" );
+accessor.set( "options[]", "option1" );
+accessor.set( "options[]", "option2" );
 }}}
 will produce:
 {{{
@@ -98,21 +98,44 @@ If your form is AJAX based and leverages JSON or DWR, binder makes it trivial to
 }
 }}}
 
-To fill in a form based on object properties, use the *Binder.deserializeForm()* method.  Example:
+To create a form binder, use *Binder.FormBinder.bind()*.  This creates an instance tied to the specified form and provides two methods, *serialize()* and *deserialize()*.  For example, to fill in a form from a javascript object, use the code:
 
 {{{
-  var myObj = {...};
+  var myObject = ...;
   var myForm = ...;
-  Binder.deserializeForm( myForm, myObj );
+  var binder = Binder.FormBinder.bind( myForm );
+  binder.deserialize( myObject );
 }}}
 
-Likewise, to convert the form input back into the object representation, use *Binder.serializeForm()*.  Example:
+Likewise, to convert the form input back into the object representation:
 
 {{{
-  var myForm = ...;
-  var myObj = Binder.serializeForm( myForm );
+  myObject = binder.serialize();
 }}}
+
+
+= Type Conversion =
+
+By default, form fields are serialized as strings.  The form binder supports type hints specified in the element's class.  The binder will look for classes in the  form _type[[n]]_ where _n_ is the identifier of the type handler, and will attempt to parse or format values appropriately.  If no handler for the type is found no conversion is performed.  For example, we can use the built-in number converter in a text field as:
+
+{{{
+  <input type="text" name="age" class="type[number]"/>
+}}}
+
+= Custom Type Handlers =
+
+For custom types, you can specify additional handlers in the call to *Binder.FormBinder.bind()*.  The optional 2nd parameter is a hash of type names to converters, where each converter is an object with two methods, *parse()* and *format*.  
+
+{{{
+  var binder = Binder.FormBinder.bind( myForm, {
+    date: {
+      parse: function( value ) { return Date.parse( value ): },
+      format: function( value ) { return new Date( value ).toLocaleString(); }
+    }
+  } );
+  binder.deserialize( myObject );
+}}}
+
+This handler would be used for any element with a class of _type[[date]]_.
 
 A simple demo of this can be found in SVN as demo/formdemo.html.
-
-At the moment there is no type hinting or conversion available, though this is likely to be added in the near future.
