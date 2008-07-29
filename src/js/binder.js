@@ -13,7 +13,6 @@
  //  limitations under the License.
 
 var Binder = {};
-
 Binder.PropertyAccessor = function() {
   var ARRAY_MATCH = /(.*)\[(\d*)\]/;
   var _setProperty = function( target, path, value ) {
@@ -55,12 +54,16 @@ Binder.PropertyAccessor = function() {
       return _getProperty( target[current], path );
     }
   };
+  var _isBuiltinType = function( obj ) {
+	var t = typeof( target );
+	return t == "string" || t == "number" || t == "date"  || t == "boolean" 
+  };
   var _enumerate = function( collection, target, path ) {
     if( target instanceof Array ) {
 	  for( var i = 0; i < target.length; i++ ) {
 	    _enumerate( collection, target[i], path + "["+i+"]" );	
       }
-    } else if( typeof(target) == "string" || typeof(target) == "number" || typeof(target) == "date"  || typeof(target) == "boolean" ) {
+    } else if( _isBuiltinType( target ) ) {
 	  collection.push( path );
     } else {
 	  for( property in target ) {
@@ -95,12 +98,32 @@ Binder.PropertyAccessor = function() {
 
 Binder.FormBinder = function() {
   var TYPE_MATCH = /type\[(.*)\]/;
+  var STRING_HANDLER = {
+    format: function( value ) {
+      return value;	
+    },
+    parse: function( value ) {
+      return value && value != "" ? value : undefined;
+    }
+  };
   var NUMBER_HANDLER = {
     format: function( value ) {
       return String( value );	
     },
     parse: function( value ) {
       return Number( value );	
+    }
+  };
+  var BOOLEAN_HANDLER = {
+    format: function( value ) {
+      return String( value );	
+    },
+    parse: function( value ) {
+      if( value ) {
+	    value = value.toLowerCase();
+	    return "true" == value || "yes" == value;
+	   }
+	   return false;	
     }
   };
   var _isSelected = function( value, options ) {
@@ -134,7 +157,7 @@ Binder.FormBinder = function() {
 	  }
 	  return nv;
     }
-    return handler ? handler.format( value ) : value;	
+    return handler ? handler.format( value ) : String(value);	
   };
   var _parse = function( path, value, element ) {
     var type = _getType( element );
@@ -146,13 +169,15 @@ Binder.FormBinder = function() {
 	  }
 	  return nv;
     }
-    return handler ? handler.parse( value ) : value;	
+    return handler ? handler.parse( value ) : String(value);	
   };
   return {
 	bind: function( form, handlers ) {
       var self = this;
 	  this.typeHandlers = {
-	    number: NUMBER_HANDLER
+	    number: NUMBER_HANDLER,
+	    boolean: BOOLEAN_HANDLER,
+	    string: STRING_HANDLER
 	  };
 	  for( prop in handlers ) {
 	    this.typeHandlers[prop] = handlers[prop];	 
@@ -177,7 +202,8 @@ Binder.FormBinder = function() {
 	        } else {
 		      value = _parse.apply( self, [ element.name, element.value, element ] );
 	      	}
-	        if( value ) {
+	console.log( element.name + " " + value );
+	        if( value != undefined ) {
 	          accessor.set( element.name, value );	
 	        }
 	      }
