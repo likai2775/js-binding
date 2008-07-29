@@ -135,8 +135,9 @@ For custom types, you can specify additional handlers in the call to *Binder.!Fo
 {{{
   var binder = Binder.FormBinder.bind( myForm, {
     date: {
-      parse: function( value ) { return Date.parse( value ): },
-      format: function( value ) { return new Date( value ).toLocaleString(); }
+      // Date handler using datejs much improved parsing...
+      parse: function( value ) { return Date.parse( value ); },
+      format: function( value ) { return Date.toString( 'M/d/yyyy' ); }
     }
   } );
   binder.deserialize( myObject );
