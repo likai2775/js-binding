@@ -123,6 +123,11 @@ By default, form fields are serialized as strings.  The form binder supports typ
   <input type="text" name="age" class="type[number]"/>
 }}}
 
+Built-in handlers include:
+  * string - Default handler.  Empty strings are treated as undefined values are are not set as properties.  You may define your own handler if you need to propagate empty strings.
+  * number - Basic formatting/parsing of numbers.
+  * boolean - Basic formatting/parsing of booleans, true<->"true", false<->"false"
+
 = Custom Type Handlers =
 
 For custom types, you can specify additional handlers in the call to *Binder.!FormBinder.bind()*.  The optional 2nd parameter is a hash of type names to converters, where each converter is an object with two methods, *parse()* and *format*.  
