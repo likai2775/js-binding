@@ -23,6 +23,14 @@
 			<input type="text" name="child.num" class="type[number]"/>
 		</div>
 		<div>
+			<span>Child mapped as associative array (path: "map[foo]")</span><br/>
+			<input type="text" name="map[foo]"/>
+		</div>
+		<div>
+			<span>Child mapped as associative array (path: "map[bar]")</span><br/>
+			<input type="text" name="map[bar]"/>
+		</div>
+		<div>
 			<span>Array property (path: "cb[]")</span><br/>
 			<ul>
 				<li><input type="checkbox" name="cb[]" class="type[number]" value="1">1</li>
@@ -64,16 +72,16 @@
     <div>
  
     <script type="text/javascript">
-    var binder = Binder.FormBinder.bind( $( 'boundForm' ), {
-	  mynumber: {
+    Binder.TypeRegistry['mynumber'] = {
 	    format: function( v ) {
 		  return String(v);
 	    },
 	    parse: function( v ) {
 		  return Number(v);
 	    }
-	  }
-    } );
+	  };
+    var obj = {};
+    var binder = Binder.FormBinder.bind( $( 'boundForm' ), obj );
     var serializeForm = function() {
 	  $( 'json' ).value = Object.toJSON( binder.serialize() );
     };
