@@ -129,6 +129,9 @@ Binder.PropertyAccessor.prototype = {
       }
     }
   },
+  isIndexed: function( property ) {
+    return property.match( this.index_regexp ) != undefined;
+  },
   set: function(  property, value ) {
     var path = property.split( "." );
     return this._setProperty( this.target, path, value );
@@ -154,7 +157,7 @@ Binder.PropertyAccessor.bindTo = function( obj ) {
 Binder.TypeRegistry = {
   'string': {
     format: function( value ) {
-      return value;
+      return String(value);
     },
     parse: function( value ) {
       return value && value != "" ? value : undefined;
@@ -162,7 +165,7 @@ Binder.TypeRegistry = {
   },
   'number': {
     format: function( value ) {
-      return value;
+      return String(value);
     },
     parse: function( value ) {
       return Number( value );
@@ -170,7 +173,7 @@ Binder.TypeRegistry = {
   },
   'boolean': {
     format: function( value ) {
-      return value;
+      return String(value);
     },
     parse: function( value ) {
       if( value ) {
@@ -203,10 +206,11 @@ Binder.FormBinder.prototype = {
           return true;
         }
       }
-    } else {
+    } else if( value != "" ) {
       return value == options;
+    } else {
+      return Boolean(options);
     }
-    return false;
   },
   _getType: function( element ) {
     if( element.className ) {
@@ -260,12 +264,17 @@ Binder.FormBinder.prototype = {
     var accessor = this._getAccessor( obj );
     var value = undefined
     if( element.type == "radio" || element.type == "checkbox" )  {
-      value = this._parse( element.name, element.value, element );
-      if( element.checked ) {
+      if( element.value != "" ) {
+        value = this._parse( element.name, element.value, element );        
+        if( element.checked ) {
+          accessor.set( element.name, value );
+        } else {
+          accessor.unset( element.name, value );
+        }
+      } else { 
+        value = element.checked;
         accessor.set( element.name, value );
-      } else {
-        accessor.unset( element.name, value );
-      }        
+      }
     } else if ( element.type == "select-one" || element.type == "select-multiple" ) {
       for( var j = 0; j < element.options.length; j++ ) {
         var v = this._parse( element.name, element.options[j].value, element );
