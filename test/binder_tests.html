@@ -10,7 +10,7 @@
   <body>
   
   <script type="text/javascript">
-	var $ = function( id ) { return document.getElementById( id ); };
+    var $ = function( id ) { return document.getElementById( id ); };
     var Assert = YAHOO.util.Assert;
     var ArrayAssert = YAHOO.util.ArrayAssert;
     var logger = new YAHOO.tool.TestLogger(); // Log results to browser window
@@ -84,16 +84,6 @@
             var newValues = Binder.Util.filter( values, function( item ) { return item % 2 == 0; } );
             ArrayAssert.containsItems( [ 2, 4, 6, 8 ], newValues );
             ArrayAssert.doesNotContainItems( [ 1, 3, 5, 7 ], newValues );
-        },
-        
-        testEvent: function() {
-            var inputElement = $( "f1" );
-            var evt;
-            Binder.Util.observe( $( "testForm1" ), "keypress", function( event ) {
-              evt = event;
-            });
-            YAHOO.util.UserAction.keypress( inputElement, {charcode: 97 /* 'a' */} );
-            Assert.areSame( Binder.Util.getEventTarget( evt ), inputElement );
         }          
     }));
 
@@ -190,19 +180,25 @@
                     city: 'San Francisco',
                     state: 'CA',
                     postalCode: '94105'
-                }
+                },
+                interests: [ 'sports', 'food' ]
             };
             var binder = new Binder.FormBinder( document.getElementById( "testForm2" ), obj );
-			binder.deserialize();
-			Assert.areEqual( 'jdoe', $( "fUsername" ).value, "Username field" );
-			Assert.areEqual( 'foo@bar.com', $( "fEmail" ).value, "Email field" );
-			Assert.areEqual( true, $( "fContactable" ).checked, "Contactable checkbox" );
-			Assert.areEqual( '30', $( "fAge" ).value, "Age field" );
-			Assert.areEqual( '123 Market St.', $( "fLine1" ).value, "Address field" );
-			Assert.areEqual( '94105', $( "fPostal" ).value, "Postal Code field" );
-			Assert.areEqual( '123 Market St.', $( "fLine1" ).value, "Address field" );
-			Assert.isTrue( $( "optCA" ).selected, "CA should be selected" );
-			Assert.isFalse( $( "optNY" ).selected, "NY should not be selected" );			
+            binder.deserialize();
+            Assert.areEqual( 'jdoe', $( "fUsername" ).value, "Username field" );
+            Assert.areEqual( 'foo@bar.com', $( "fEmail" ).value, "Email field" );
+            Assert.areEqual( true, $( "fContactable" ).checked, "Contactable checkbox" );
+            Assert.areEqual( '30', $( "fAge" ).value, "Age field" );
+            Assert.areEqual( '123 Market St.', $( "fLine1" ).value, "Address field" );
+            Assert.areEqual( '94105', $( "fPostal" ).value, "Postal Code field" );
+            Assert.areEqual( '123 Market St.', $( "fLine1" ).value, "Address field" );
+            Assert.isTrue( $( "optCA" ).selected, "CA should be selected" );
+            Assert.isFalse( $( "optNY" ).selected, "NY should not be selected" );			
+            Assert.isTrue( $( "fSports" ).checked, "Sports should be selected" );			
+            Assert.isTrue( $( "fFood" ).checked, "Food should be selected" );			
+            Assert.isFalse( $( "fShopping" ).checked, "Shopping should not be selected" );			
+            Assert.isFalse( $( "fFinance" ).checked, "Finance should not be selected" );			
+            Assert.isFalse( $( "fGames" ).checked, "Games should not be selected" );			
         },
 
         testSerializeForm: function() {
@@ -217,19 +213,62 @@
                     city: 'San Francisco',
                     state: 'CA',
                     postalCode: '94105'
-                }
+                },
+                interests: [ 'sports', 'food' ]
             };
             var binder = new Binder.FormBinder( document.getElementById( "testForm2" ), obj );
-			binder.deserialize();
-			$( 'fUsername' ).value = "bob";
-			$( 'fAge' ).value = 27;
-			$( 'fContactable' ).checked = false;
-			binder.serialize();
-			Assert.areEqual( 'bob', obj.username, "Username field" );
-			Assert.isFalse( obj.contactable, "Contactable checkbox" );
-			Assert.areEqual( '27', obj.age, "Age field" );
-        },
-        
+            binder.deserialize();
+            $( 'fUsername' ).value = "bob";
+            $( 'fAge' ).value = 27;
+            $( 'optNY' ).selected = true;
+            $( 'fContactable' ).checked = false;
+            $( 'fSports' ).checked = false;
+            $( 'fGames' ).checked = true;            
+            binder.serialize();
+            Assert.areEqual( 'bob', obj.username, "Username field" );
+            Assert.isFalse( obj.contactable, "Contactable checkbox" );
+            Assert.areEqual( '27', obj.age, "Age field" );
+            Assert.areEqual( 'NY', obj.address.state, "State field" );
+            ArrayAssert.containsItems( [ 'games', 'food' ], obj.interests, "Incorrect interests" );
+            ArrayAssert.doesNotContainItems( [ 'sports', 'finance', 'shopping' ], obj.interests, "Incorrect interests" );
+        }, 
+
+        testSerializeFields: function() {
+            var obj = {
+                username: 'jdoe',
+                email: 'foo@bar.com',
+                contactable: true, 
+                age: 30,
+                address: {
+                    line1: '123 Market St.',
+                    line2: 'Suite 12345',
+                    city: 'San Francisco',
+                    state: 'CA',
+                    postalCode: '94105'
+                },
+                interests: [ 'sports', 'food' ]
+            };
+            var binder = new Binder.FormBinder( document.getElementById( "testForm2" ), obj );
+            binder.deserialize();
+            $( 'fUsername' ).value = "bob";
+            binder.serializeField( $('fUsername') );
+            Assert.areEqual( 'bob', obj.username, "Username field" );
+            $( 'fContactable' ).checked = false;
+            binder.serializeField( $('fContactable') );
+            Assert.isFalse( obj.contactable, "Contactable checkbox" );
+            $( 'fSports' ).checked = false;
+            binder.serializeField( $('fSports') );
+            $( 'fGames' ).checked = true;            
+            binder.serializeField( $('fGames') );
+            ArrayAssert.containsItems( [ 'games', 'food' ], obj.interests, "Incorrect interests" );
+            ArrayAssert.doesNotContainItems( [ 'sports', 'finance', 'shopping' ], obj.interests, "Incorrect interests" );
+            console.log( obj );
+            $( 'fEmail' ).value = "";
+            binder.serializeField( $('fEmail') );
+            Assert.isUndefined( obj.email );
+            console.log( obj );
+        }
+
     }));
 
     YAHOO.tool.TestRunner.add( suite );
@@ -241,17 +280,23 @@
   </form>
 
   <form id="testForm2">
-	 <label>Username:</label><input id="fUsername" type="text" name="username"/><br/>
-	 <label>Email:</label><input id="fEmail" type="text" name="email"/><br/>
-	 <label>Receive E-Mail?</label><input id="fContactable" type="checkbox" name="contactable" class="type[boolean]"/><br/>
-	 <label>Age:</label><input id="fAge" type="text" name="age" class="type[number]"/><br/>
-	 <label>Address:</label><input id="fLine1" type="text" name="address.line1"/><br/>
-	 <label>Address:</label><input id="fLine2" type="text" name="address.line2"/><br/>
-	 <label>City:</label><input id="fCity" type="text" name="address.city"/><br/>
-	 <label>State:</label><select id="fState" name="address.state">
-		                    <option id="optCA" value="CA">California</option>
-		                    <option id="optNY" value="NY">New York</option>
+     <label>Username:</label><input id="fUsername" type="text" name="username"/><br/>
+     <label>Email:</label><input id="fEmail" type="text" name="email"/><br/>
+     <label>Receive E-Mail?</label><input id="fContactable" type="checkbox" name="contactable" class="type[boolean]"/><br/>
+     <label>Age:</label><input id="fAge" type="text" name="age" class="type[number]"/><br/>
+     <label>Address:</label><input id="fLine1" type="text" name="address.line1"/><br/>
+     <label>Address:</label><input id="fLine2" type="text" name="address.line2"/><br/>
+     <label>City:</label><input id="fCity" type="text" name="address.city"/><br/>
+     <label>State:</label><select id="fState" name="address.state">
+                            <option id="optCA" value="CA">California</option>
+                            <option id="optNY" value="NY">New York</option>
                           </select><br/>
      <label>Postal Code:</label><input id="fPostal" type="text" name="address.postalCode"/><br/>
+     <label>Interests:</label><br/>
+        <input id="fSports" type="checkbox" name="interests[]" value="sports"/>Sports<br/>
+        <input id="fGames" type="checkbox" name="interests[]" value="games"/>Games<br/>
+        <input id="fShopping" type="checkbox" name="interests[]" value="shopping"/>Shopping<br/>
+        <input id="fFood" type="checkbox" name="interests[]" value="food"/>Food<br/>
+        <input id="fFinance" type="checkbox" name="interests[]" value="finance"/>Finance<br/>
   </body>
 </html>
