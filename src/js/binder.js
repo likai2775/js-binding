@@ -239,14 +239,11 @@ Binder.FormBinder.prototype = {
     if( element.type == "radio" || element.type == "checkbox" )  {
       if( element.value != "" && element.value != "on" ) {
         value = this._parse( element.name, element.value, element );        
-        console.log( element.value + " " + value );
         if( element.checked ) {
           accessor.set( element.name, value );
         } else if( accessor.isIndexed( element.name ) ) {
           var values = accessor.get( element.name );
-          console.log( values );
           values = Binder.Util.filter( values, function( item) { return item != value; } );
-          console.log( values );
           accessor.set( element.name, values );
         } 
       } else { 

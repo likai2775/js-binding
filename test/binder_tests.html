@@ -262,11 +262,9 @@
             binder.serializeField( $('fGames') );
             ArrayAssert.containsItems( [ 'games', 'food' ], obj.interests, "Incorrect interests" );
             ArrayAssert.doesNotContainItems( [ 'sports', 'finance', 'shopping' ], obj.interests, "Incorrect interests" );
-            console.log( obj );
             $( 'fEmail' ).value = "";
             binder.serializeField( $('fEmail') );
             Assert.isUndefined( obj.email );
-            console.log( obj );
         }
 
     }));
