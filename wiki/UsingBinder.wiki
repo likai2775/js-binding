@@ -6,11 +6,11 @@ This is a short tutorial on how to use the various classes.
 
 = Creating a Property Accessor =
 
-To create a new !PropertyAccessor and tie it to a new or existing object, use the function *Binder.!PropertyAccessor.bindTo()*.  For this and the remaining examples, let's build up a new object from scratch.
+For this and the remaining examples, let's build up a new object from scratch using *Binder.!PropertyAccessor*.
 
 {{{
 var myObject = {};
-var accessor = Binder.PropertyAccessor.bindTo( myObject );
+var accessor = new Binder.PropertyAccessor( myObject );
 }}}
 
 = Setting properties =
@@ -98,13 +98,13 @@ If your form is AJAX based and leverages JSON or DWR, binder makes it trivial to
 }
 }}}
 
-To create a form binder, use *Binder.!FormBinder.bind()*.  This creates an instance tied to the specified form and provides two methods, *serialize()* and *deserialize()*.  For example, to fill in a form from a javascript object, use the code:
+*Binder.!FormBinder* does just this and provides two methods, *serialize()* and *deserialize()*.  For example, to fill in a form from a javascript object, use the code:
 
 {{{
   var myObject = ...;
   var myForm = ...;
-  var binder = Binder.FormBinder.bind( myForm );
-  binder.deserialize( myObject );
+  var binder = new Binder.FormBinder( myForm, myObject );
+  binder.deserialize();
 }}}
 
 Likewise, to convert the form input back into the object representation:
@@ -112,8 +112,6 @@ Likewise, to convert the form input back into the object representation:
 {{{
   myObject = binder.serialize();
 }}}
-
-If you need to merge the form values into an existing object, you may pass it as a parameter in *serialize()*.  Only the fields that are mapped to form elements will be modified as a result.
 
 = Type Conversion =
 
@@ -130,19 +128,18 @@ Built-in handlers include:
 
 = Custom Type Handlers =
 
-For custom types, you can specify additional handlers in the call to *Binder.!FormBinder.bind()*.  The optional 2nd parameter is a hash of type names to converters, where each converter is an object with two methods, *parse()* and *format*.  
+For custom types, you can specify additional handlers by adding properties to Binder.TypeRegistry.  For example, adding a custom date type:  
 
 {{{
-  var binder = Binder.FormBinder.bind( myForm, {
-    date: {
-      // Date handler using datejs much improved parsing...
-      parse: function( value ) { return Date.parse( value ); },
-      format: function( value ) { return Date.toString( 'M/d/yyyy' ); }
-    }
-  } );
-  binder.deserialize( myObject );
+  Binder.TypeRegistry['date'] = {
+    // Date handler using datejs much improved parsing...
+    parse: function( value ) { return Date.parse( value ); },
+    format: function( value ) { return Date.toString( 'M/d/yyyy' ); }
+  };
+  var binder = Binder.FormBinder.bind( myForm, myObject ); 
+  binder.deserialize();
 }}}
 
 This handler would be used for any element with a class of _type[[date]]_.
 
-A simple demo of this can be found in SVN as demo/formdemo.html.
+For additional examples, refer to the unit tests in SVN.
